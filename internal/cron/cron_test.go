@@ -186,6 +186,21 @@ func TestNextLeapFeb29(t *testing.T) {
 	}
 }
 
+func TestNextHourStepFromNonZeroMinute(t *testing.T) {
+	// 回归：当 cron 限定特定小时（如偶数小时）且起始分钟非整点时，
+	// Next 应返回最近的匹配小时，而非因分钟递进溢出到下一个匹配小时。
+	s, _ := Parse("0 */2 * * *")
+	from := parse(t, "2026-01-15T11:01:00Z")
+	got, err := s.Next(from)
+	if err != nil {
+		t.Fatalf("Next: %v", err)
+	}
+	want := parse(t, "2026-01-15T12:00:00Z")
+	if !got.Equal(want) {
+		t.Errorf("Next = %v, want %v", got, want)
+	}
+}
+
 func TestNextN(t *testing.T) {
 	s, _ := Parse("*/15 * * * *")
 	from := parse(t, "2026-01-15T10:00:00Z")

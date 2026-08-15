@@ -224,7 +224,9 @@ func (s Schedule) Next(from time.Time) (time.Time, error) {
 			continue
 		}
 		if !s.hour.match(t.Hour()) {
-			t = t.Add(1 * time.Hour)
+			// 小时不命中时进到下一整点，并把分钟重置为 0：否则保留的分钟会
+			// 在逐分钟递进时溢出到下一小时，从而跳过刚刚命中的最近匹配小时。
+			t = time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), 0, 0, 0, loc).Add(1 * time.Hour)
 			continue
 		}
 		if !s.minute.match(t.Minute()) {
